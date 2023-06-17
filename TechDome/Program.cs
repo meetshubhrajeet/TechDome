@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using TechDome.DatabaseContext;
+using TechDome.Models.Interfaces;
+using TechDome.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +14,15 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+// Add In-Memory DB
 builder.Services.AddDbContext<MyDatabaseContext>();
 
+// Add Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<MyDatabaseContext>()
     .AddDefaultTokenProviders();
 
+// Config Identity
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Password.RequiredLength = 5;
@@ -25,6 +30,7 @@ builder.Services.Configure<IdentityOptions>(options =>
 
 });
 
+// Add Authentication and JwtBearer
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
 {
     options.RequireHttpsMetadata = false;
@@ -39,6 +45,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:Secret-Key"]))
     };
 });
+
+// Inject app Dependencies (Dependency Injection)
+
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
